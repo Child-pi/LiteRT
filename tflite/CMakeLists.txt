@@ -332,6 +332,8 @@ populate_tflite_source_vars("core/kernels" TFLITE_CORE_KERNELS_SRCS)
 populate_tflite_source_vars("core/tools" TFLITE_CORE_TOOLS_SRCS)
 populate_tflite_source_vars("c" TFLITE_C_SRCS)
 populate_tflite_source_vars("delegates" TFLITE_DELEGATES_SRCS)
+populate_tflite_source_vars("delegates/utils" TFLITE_DELEGATES_UTILS_SRCS)
+populate_tflite_source_vars("delegates/my_op_test" TFLITE_DELEGATES_MY_OP_TEST_SRCS)
 if(TFLITE_ENABLE_GPU)
   find_package(opencl_headers REQUIRED)
   find_package(vulkan_headers REQUIRED)
@@ -698,6 +700,8 @@ set(_ALL_TFLITE_SRCS
   ${TFLITE_DELEGATES_GPU_SRCS}
   ${TFLITE_DELEGATES_NNAPI_SRCS}
   ${TFLITE_DELEGATES_SRCS}
+  ${TFLITE_DELEGATES_UTILS_SRCS}
+  ${TFLITE_DELEGATES_MY_OP_TEST_SRCS}
   ${TFLITE_EXPERIMENTAL_REMAT_SRCS}
   ${TFLITE_EXPERIMENTAL_RESOURCE_SRCS}
   ${TFLITE_EXPERIMENTAL_RUY_PROFILER_SRCS}

@@ -309,6 +309,8 @@ set(TEST_WITH_EXTERNAL_MAIN_LIST
   where_test.cc
   while_test.cc
   zeros_like_test.cc
+  ../delegates/my_op_test/my_op_add_test_delegate_test.cc
+  ../delegates/my_op_test/my_op_mul_test_delegate_test.cc
 )
 # Tests where the main() provided by the GoogleTest framework
 set(TEST_WITH_GTEST_MAIN_LIST

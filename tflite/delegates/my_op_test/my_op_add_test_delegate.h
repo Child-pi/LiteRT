@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_DELEGATES_MY_OP_TEST_MY_OP_TEST_DELEGATE_H_
-#define TENSORFLOW_LITE_DELEGATES_MY_OP_TEST_MY_OP_TEST_DELEGATE_H_
+#ifndef TENSORFLOW_LITE_DELEGATES_MY_OP_TEST_MY_OP_ADD_TEST_DELEGATE_H_
+#define TENSORFLOW_LITE_DELEGATES_MY_OP_TEST_MY_OP_ADD_TEST_DELEGATE_H_
 
 #include <memory>
 
@@ -26,20 +26,20 @@ extern "C" {
 
 typedef struct {
   // Add options here if needed.
-} MyOpTestDelegateOptions;
+} MyOpAddTestDelegateOptions;
 
 // Returns a structure with the default delegate options.
-MyOpTestDelegateOptions TfLiteMyOpTestDelegateOptionsDefault();
+MyOpAddTestDelegateOptions TfLiteMyOpAddTestDelegateOptionsDefault();
 
 // Creates a new delegate instance that needs to be destroyed with
-// `TfLiteMyOpTestDelegateDelete` when delegate is no longer used by TFLite.
-TfLiteDelegate* TfLiteMyOpTestDelegateCreate(const MyOpTestDelegateOptions* options);
+// `TfLiteMyOpAddTestDelegateDelete` when delegate is no longer used by TFLite.
+TfLiteDelegate* TfLiteMyOpAddTestDelegateCreate(const MyOpAddTestDelegateOptions* options);
 
-// Destroys a delegate created with `TfLiteMyOpTestDelegateCreate` call.
-void TfLiteMyOpTestDelegateDelete(TfLiteDelegate* delegate);
+// Destroys a delegate created with `TfLiteMyOpAddTestDelegateCreate` call.
+void TfLiteMyOpAddTestDelegateDelete(TfLiteDelegate* delegate);
 
 #ifdef __cplusplus
 }
 #endif  // __cplusplus
 
-#endif  // TENSORFLOW_LITE_DELEGATES_MY_OP_TEST_MY_OP_TEST_DELEGATE_H_
+#endif  // TENSORFLOW_LITE_DELEGATES_MY_OP_TEST_MY_OP_ADD_TEST_DELEGATE_H_
