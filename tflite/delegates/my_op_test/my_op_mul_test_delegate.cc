@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tflite/delegates/my_op_test/my_op_test_delegate.h"
+#include "tflite/delegates/my_op_test/my_op_mul_test_delegate.h"
 
 #include <memory>
 #include <utility>
@@ -23,7 +23,6 @@ limitations under the License.
 #include "tflite/c/c_api_types.h"
 #include "tflite/c/common.h"
 #include "tflite/delegates/utils/simple_delegate.h"
-#include "tflite/kernels/internal/reference/add.h"
 #include "tflite/kernels/internal/reference/mul.h"
 #include "tflite/kernels/internal/tensor_ctypes.h"
 #include "tflite/kernels/internal/types.h"
@@ -32,23 +31,21 @@ limitations under the License.
 namespace tflite {
 namespace my_op_test {
 
-class MyOpTestDelegateKernel : public SimpleDelegateKernelInterface {
+class MyOpMulTestDelegateKernel : public SimpleDelegateKernelInterface {
  public:
   TfLiteStatus Init(TfLiteContext* context,
                     const TfLiteDelegateParams* params) override {
     // For this simple delegate, we only replace one node at a time.
     int node_index = params->nodes_to_replace->data[0];
     TfLiteNode* node;
-    const TfLiteRegistration* registration;
+    TfLiteRegistration* registration_ptr;
     TF_LITE_ENSURE_STATUS(context->GetNodeAndRegistration(
-        context, node_index, &node, &registration));
+        context, node_index, &node, &registration_ptr));
+    const TfLiteRegistration* registration = registration_ptr;
     builtin_code_ = registration->builtin_code;
 
     // Store fused activation if any
-    if (builtin_code_ == kTfLiteBuiltinAdd) {
-      auto* add_params = reinterpret_cast<TfLiteAddParams*>(node->builtin_data);
-      activation_ = add_params ? add_params->activation : kTfLiteActNone;
-    } else if (builtin_code_ == kTfLiteBuiltinMul) {
+    if (builtin_code_ == kTfLiteBuiltinMul) {
       auto* mul_params = reinterpret_cast<TfLiteMulParams*>(node->builtin_data);
       activation_ = mul_params ? mul_params->activation : kTfLiteActNone;
     }
@@ -71,11 +68,7 @@ class MyOpTestDelegateKernel : public SimpleDelegateKernelInterface {
       CalculateActivationRange(activation_, &output_activation_min, &output_activation_max);
       SetActivationParams(output_activation_min, output_activation_max, &params);
 
-      if (builtin_code_ == kTfLiteBuiltinAdd) {
-        reference_ops::Add(params, GetTensorShape(input1), GetTensorData<float>(input1),
-                           GetTensorShape(input2), GetTensorData<float>(input2),
-                           GetTensorShape(output), GetTensorData<float>(output));
-      } else if (builtin_code_ == kTfLiteBuiltinMul) {
+      if (builtin_code_ == kTfLiteBuiltinMul) {
         reference_ops::Mul(params, GetTensorShape(input1), GetTensorData<float>(input1),
                            GetTensorShape(input2), GetTensorData<float>(input2),
                            GetTensorShape(output), GetTensorData<float>(output));
@@ -92,17 +85,16 @@ class MyOpTestDelegateKernel : public SimpleDelegateKernelInterface {
   TfLiteFusedActivation activation_ = kTfLiteActNone;
 };
 
-class MyOpTestDelegate : public SimpleDelegateInterface {
+class MyOpMulTestDelegate : public SimpleDelegateInterface {
  public:
-  explicit MyOpTestDelegate(const MyOpTestDelegateOptions& options)
+  explicit MyOpMulTestDelegate(const MyOpMulTestDelegateOptions& options)
       : options_(options) {}
 
   bool IsNodeSupportedByDelegate(const TfLiteRegistration* registration,
                                  const TfLiteNode* node,
                                  TfLiteContext* context) const override {
-    // Support ADD and MUL ops.
-    if (registration->builtin_code != kTfLiteBuiltinAdd &&
-        registration->builtin_code != kTfLiteBuiltinMul) {
+    // Support MUL op.
+    if (registration->builtin_code != kTfLiteBuiltinMul) {
       return false;
     }
 
@@ -116,13 +108,13 @@ class MyOpTestDelegate : public SimpleDelegateInterface {
   TfLiteStatus Initialize(TfLiteContext* context) override { return kTfLiteOk; }
 
   const char* Name() const override {
-    static constexpr char kName[] = "MyOpTestDelegate";
+    static constexpr char kName[] = "MyOpMulTestDelegate";
     return kName;
   }
 
   std::unique_ptr<SimpleDelegateKernelInterface> CreateDelegateKernelInterface()
       override {
-    return std::make_unique<MyOpTestDelegateKernel>();
+    return std::make_unique<MyOpMulTestDelegateKernel>();
   }
 
   SimpleDelegateInterface::Options DelegateOptions() const override {
@@ -130,24 +122,24 @@ class MyOpTestDelegate : public SimpleDelegateInterface {
   }
 
  private:
-  const MyOpTestDelegateOptions options_;
+  const MyOpMulTestDelegateOptions options_;
 };
 
 }  // namespace my_op_test
 }  // namespace tflite
 
-MyOpTestDelegateOptions TfLiteMyOpTestDelegateOptionsDefault() {
-  MyOpTestDelegateOptions options;
+MyOpMulTestDelegateOptions TfLiteMyOpMulTestDelegateOptionsDefault() {
+  MyOpMulTestDelegateOptions options;
   return options;
 }
 
-TfLiteDelegate* TfLiteMyOpTestDelegateCreate(const MyOpTestDelegateOptions* options) {
-  std::unique_ptr<tflite::my_op_test::MyOpTestDelegate> delegate(
-      new tflite::my_op_test::MyOpTestDelegate(
-          options ? *options : TfLiteMyOpTestDelegateOptionsDefault()));
+TfLiteDelegate* TfLiteMyOpMulTestDelegateCreate(const MyOpMulTestDelegateOptions* options) {
+  std::unique_ptr<tflite::my_op_test::MyOpMulTestDelegate> delegate(
+      new tflite::my_op_test::MyOpMulTestDelegate(
+          options ? *options : TfLiteMyOpMulTestDelegateOptionsDefault()));
   return tflite::TfLiteDelegateFactory::CreateSimpleDelegate(std::move(delegate));
 }
 
-void TfLiteMyOpTestDelegateDelete(TfLiteDelegate* delegate) {
+void TfLiteMyOpMulTestDelegateDelete(TfLiteDelegate* delegate) {
   tflite::TfLiteDelegateFactory::DeleteSimpleDelegate(delegate);
 }
