@@ -52,6 +52,7 @@ cc_library(
     copts = tflite_copts(),
     deps = [
         "//tflite:builtin_ops",
+        "//tflite/c:builtin_op_data",
         "//tflite/c:c_api_types",
         "//tflite/c:common",
         "//tflite/core/c:common",
@@ -121,6 +122,50 @@ cc_test(
 cc_test(
     name = "my_op_arg_min_test",
     srcs = ["my_op_arg_min_test.cc"],
+    deps = [
+        ":my_op_test_delegate",
+        "//tflite/kernels:test_util",
+        "//tflite/schema:schema_fbs",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "my_op_atan2_test",
+    srcs = ["my_op_atan2_test.cc"],
+    deps = [
+        ":my_op_test_delegate",
+        "//tflite/kernels:test_util",
+        "//tflite/schema:schema_fbs",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "my_op_average_pool_2d_test",
+    srcs = ["my_op_average_pool_2d_test.cc"],
+    deps = [
+        ":my_op_test_delegate",
+        "//tflite/kernels:test_util",
+        "//tflite/schema:schema_fbs",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "my_op_batch_matmul_test",
+    srcs = ["my_op_batch_matmul_test.cc"],
+    deps = [
+        ":my_op_test_delegate",
+        "//tflite/kernels:test_util",
+        "//tflite/schema:schema_fbs",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "my_op_batch_to_space_nd_test",
+    srcs = ["my_op_batch_to_space_nd_test.cc"],
     deps = [
         ":my_op_test_delegate",
         "//tflite/kernels:test_util",

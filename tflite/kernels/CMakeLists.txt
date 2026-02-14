@@ -315,6 +315,10 @@ set(TEST_WITH_EXTERNAL_MAIN_LIST
   ../delegates/my_op_test/my_op_add_n_test.cc
   ../delegates/my_op_test/my_op_arg_max_test.cc
   ../delegates/my_op_test/my_op_arg_min_test.cc
+  ../delegates/my_op_test/my_op_atan2_test.cc
+  ../delegates/my_op_test/my_op_average_pool_2d_test.cc
+  ../delegates/my_op_test/my_op_batch_matmul_test.cc
+  ../delegates/my_op_test/my_op_batch_to_space_nd_test.cc
 )
 # Tests where the main() provided by the GoogleTest framework
 set(TEST_WITH_GTEST_MAIN_LIST
