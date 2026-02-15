@@ -1,9 +1,11 @@
-How to Create a TFLite Delegate (Example: my_op_test)
+How to Create a TFLite Delegate (Example: my_op_add_test and my_op_mul_test)
 =====================================================
 
 Creating a delegate in LiteRT (formerly TFLite) allows you to offload the execution of specific operations to a specialized hardware accelerator or a custom highly-optimized software implementation.
 
-In this example, we created a new delegate named `my_op_test` that handles the built-in `ADD` and `MUL` operators using the same algorithm found in the standard LiteRT kernels.
+In this example, we have split a combined delegate into two separate specialized delegates:
+1. `my_op_add_test`: Handles the built-in `ADD` operator.
+2. `my_op_mul_test`: Handles the built-in `MUL` operator.
 
 Key Components of a Delegate:
 ----------------------------
@@ -18,53 +20,38 @@ Key Components of a Delegate:
 
 3. Identifying Supported Nodes (IsNodeSupportedByDelegate):
    The delegate's first task is to look at the TFLite graph and decide which operations it can handle.
-   In `my_op_test_delegate.cc`:
+   In `my_op_add_test_delegate.cc`:
    ```cpp
    bool IsNodeSupportedByDelegate(const TfLiteRegistration* registration, ...) {
-     if (registration->builtin_code == kTfLiteBuiltinAdd ||
-         registration->builtin_code == kTfLiteBuiltinMul) {
+     if (registration->builtin_code == kTfLiteBuiltinAdd) {
        // Check if data types are supported (e.g., float32)
        return true;
      }
      return false;
    }
    ```
-   During the preparation phase, LiteRT iterates through all nodes and asks the delegate if it wants to "claim" them.
 
 4. Delegate Kernel (SimpleDelegateKernelInterface):
    Once the delegate claims a set of nodes, LiteRT replaces them with a single "delegate node". This node is managed by a "Delegate Kernel".
    The kernel has three main methods:
-   - Init(): Called when the delegate node is created. Used to store information about the original nodes being replaced, such as the operator type and parameters (e.g., fused activations).
+   - Init(): Called when the delegate node is created. Used to store information about the original nodes being replaced.
    - Prepare(): Called when the graph is being prepared. Used to check shapes and allocate any necessary intermediate buffers.
    - Eval(): Called during inference. This is where the actual computation happens.
 
 5. Implementation of the Operation:
-   As requested, `my_op_test` uses the same algorithm as the built-in kernels. In the `Eval()` method of our delegate kernel, we included the necessary reference headers (e.g., `tflite/kernels/internal/reference/add.h`) and called the corresponding functions (e.g., `reference_ops::Add`).
-   ```cpp
-   TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-     // Get input and output tensors
-     // ...
-     if (builtin_code_ == kTfLiteBuiltinAdd) {
-       reference_ops::Add(params, input1_shape, input1_data, ...);
-     } else if (builtin_code_ == kTfLiteBuiltinMul) {
-       reference_ops::Mul(params, input1_shape, input1_data, ...);
-     }
-     return kTfLiteOk;
-   }
-   ```
+   In the `Eval()` method of our delegate kernel, we included the necessary reference headers (e.g., `tflite/kernels/internal/reference/add.h`) and called the corresponding functions (e.g., `reference_ops::Add`).
 
 6. Creation and Deletion:
-   Finally, you provide C-style functions to create and delete the delegate instance, which can then be passed to the LiteRT Interpreter.
+   Finally, you provide C-style functions to create and delete the delegate instance.
    ```cpp
-   TfLiteDelegate* TfLiteMyOpTestDelegateCreate(const MyOpTestDelegateOptions* options);
-   void TfLiteMyOpTestDelegateDelete(TfLiteDelegate* delegate);
+   TfLiteDelegate* TfLiteMyOpAddTestDelegateCreate(const MyOpAddTestDelegateOptions* options);
+   void TfLiteMyOpAddTestDelegateDelete(TfLiteDelegate* delegate);
    ```
 
-Summary of Steps to create 'my_op_test':
+Summary of Steps to create these delegates:
 --------------------------------------
 1. Created `tflite/delegates/my_op_test/` directory.
-2. Defined the options and C API in `my_op_test_delegate.h`.
-3. Implemented the logic in `my_op_test_delegate.cc` using `SimpleDelegateInterface`.
-4. Claimed `kTfLiteBuiltinAdd` and `kTfLiteBuiltinMul` nodes in `IsNodeSupportedByDelegate`.
-5. Implemented the addition and multiplication logic in `MyOpTestDelegateKernel::Eval` by calling the internal `reference_ops` algorithms.
-6. The delegate can now be used by an application by calling `TfLiteMyOpTestDelegateCreate()` and passing the resulting pointer to `interpreter->ModifyGraphWithDelegate()`.
+2. Defined the options and C API in `my_op_add_test_delegate.h` and `my_op_mul_test_delegate.h`.
+3. Implemented the logic in separate `.cc` files using `SimpleDelegateInterface`.
+4. Updated the build system (CMake and BUILD files) to include the new files and their unit tests.
+5. Verified the implementation with dedicated unit tests.
